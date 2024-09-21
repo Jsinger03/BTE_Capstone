@@ -26,7 +26,37 @@ const OCRApp = () => {
   };
 
   const extractFields = (text) => {
-    // ... (keep the existing extractFields function)
+    const lines = text.split('\n');
+    const fields = {
+      merchantName: '',
+      date: '',
+      total: '',
+      items: []
+    };
+  
+    // Simple extraction logic (you may need to adjust based on your receipt format)
+    fields.merchantName = lines[0] || ''; // Assume first line is merchant name
+    
+    // Look for date and total
+    for (const line of lines) {
+      if (line.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)) {
+        fields.date = line.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/)[0];
+      }
+      if (line.match(/total/i) && line.match(/\d+\.\d{2}/)) {
+        fields.total = line.match(/\d+\.\d{2}/)[0];
+      }
+    }
+  
+    // Extract items (assuming format: Item name $XX.XX)
+    const itemRegex = /(.+)\s+\$(\d+\.\d{2})/;
+    for (const line of lines) {
+      const match = line.match(itemRegex);
+      if (match) {
+        fields.items.push({ name: match[1].trim(), price: match[2] });
+      }
+    }
+  
+    return fields;
   };
 
   const performOCR = async () => {
